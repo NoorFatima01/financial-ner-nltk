@@ -1,0 +1,1 @@
+web: gunicorn financial_ner_project.wsgi
