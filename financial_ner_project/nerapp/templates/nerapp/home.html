@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Entity Extractor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        padding: 40px;
+      }
+
+      .form-section {
+        margin-bottom: 40px;
+      }
+
+      .form-section h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        font-weight: 400;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #555;
+      }
+
+      .form-group textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 15px;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        font-size: 16px;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .sample-texts {
+        margin-bottom: 30px;
+      }
+
+      .sample-texts h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+      }
+
+      .sample-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .sample-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .sample-card:hover {
+        background: #e3f2fd;
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .sample-card::before {
+        content: "Click to use";
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: #667eea;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .sample-card:hover::before {
+        opacity: 1;
+      }
+
+      .sample-preview {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .results-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 30px;
+        margin-top: 30px;
+      }
+
+      .results-section h2 {
+        color: #2c3e50;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+        text-align: center;
+      }
+
+      .entity-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .entity-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #667eea;
+      }
+
+      .entity-card h3 {
+        color: #2c3e50;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .entity-card h3::before {
+        content: "📊";
+        font-size: 1.2rem;
+      }
+
+      .entity-card[data-type="symbols"] h3::before {
+        content: "📈";
+      }
+      .entity-card[data-type="companies"] h3::before {
+        content: "🏢";
+      }
+      .entity-card[data-type="exchanges"] h3::before {
+        content: "💹";
+      }
+      .entity-card[data-type="industries"] h3::before {
+        content: "🏭";
+      }
+      .entity-card[data-type="market_caps"] h3::before {
+        content: "💰";
+      }
+
+      .entity-list {
+        color: #555;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .entity-item {
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .entity-item:last-child {
+        border-bottom: none;
+      }
+
+      .no-results {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 40px;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .sample-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Financial Entity Extractor</h1>
+        <p>
+          Extract and identify financial entities from text using advanced NLP
+        </p>
+      </div>
+
+      <div class="main-content">
+        <div class="form-section">
+          <h2>Enter Financial Text or Choose From Sample Texts</h2>
+
+          <div class="sample-texts">
+            <h3>Try these sample texts:</h3>
+            <div class="sample-grid">
+              <div class="sample-card" onclick="setSampleText(0)">
+                <div class="sample-preview">
+                  Apple (AAPL), a leading company in Technology and Hardware,
+                  saw its market cap rise to $2.46 trillion today. The stock
+                  traded actively on the NASDAQ exchange...
+                </div>
+              </div>
+              <div class="sample-card" onclick="setSampleText(1)">
+                <div class="sample-preview">
+                  Shares of Atlantic American (AAME) in the Insurance industry,
+                  with a market cap of $80 million, rose sharply after news of
+                  new policies...
+                </div>
+              </div>
+              <div class="sample-card" onclick="setSampleText(2)">
+                <div class="sample-preview">
+                  The Bolsa de Comercio de Buenos Aires (AF) in Argentina
+                  recently saw increased volume from companies like Agilent
+                  Technologies (A)...
+                </div>
+              </div>
+              <div class="sample-card" onclick="setSampleText(3)">
+                <div class="sample-preview">
+                  American Airlines (AAL), a major player in the Airlines sector
+                  with a $12.27 billion market cap, trades primarily on the New
+                  York Stock Exchange...
+                </div>
+              </div>
+              <div class="sample-card" onclick="setSampleText(4)">
+                <div class="sample-preview">
+                  Investors on the Shanghai Stock Exchange (CG) are closely
+                  monitoring biotechnology giant AbbVie (ABBV), which carries a
+                  market cap of $188.52 billion...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="id_user_input">Enter your financial text:</label>
+              {{ form.user_input }}
+            </div>
+            <button type="submit" class="btn">Extract Entities</button>
+          </form>
+        </div>
+
+        {% if result.symbols or result.companies or result.exchanges or result.industries or result.market_caps %}
+        <div id="results" class="results-section">
+          <h2>Extracted Financial Entities</h2>
+          <div class="entity-grid">
+            <div class="entity-card" data-type="symbols">
+              <h3>Stock Symbols</h3>
+              <div class="entity-list">
+                {% if result.symbols %} 
+                {% for symbol in result.symbols %}
+                <div class="entity-item">{{ symbol }}</div>
+                {% endfor %} 
+                {% else %}
+                <div class="entity-item">No symbols found</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="entity-card" data-type="companies">
+              <h3>Companies</h3>
+              <div class="entity-list">
+                {% if result.companies %} 
+                {% for company in result.companies %}
+                <div class="entity-item">{{ company }}</div>
+                {% endfor %} 
+                {% else %}
+                <div class="entity-item">No companies found</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="entity-card" data-type="exchanges">
+              <h3>Stock Exchanges</h3>
+              <div class="entity-list">
+                {% if result.exchanges %} 
+                {% for exchange in result.exchanges %}
+                <div class="entity-item">{{ exchange }}</div>
+                {% endfor %} 
+                {% else %}
+                <div class="entity-item">No exchanges found</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="entity-card" data-type="industries">
+              <h3>Industries</h3>
+              <div class="entity-list">
+                {% if result.industries %} 
+                {% for industry in result.industries%}
+                <div class="entity-item">{{ industry }}</div>
+                {% endfor %} 
+                {% else %}
+                <div class="entity-item">No industries found</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="entity-card" data-type="market_caps">
+              <h3>Market Capitalizations</h3>
+              <div class="entity-list">
+                {% if result.market_caps %} 
+                {% for market_cap in result.market_caps %}
+                <div class="entity-item">{{ market_cap }}</div>
+                {% endfor %} 
+                {% else %}
+                <div class="entity-item">No market caps found</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <script>
+      const sampleTexts = [
+        `Apple (AAPL), a leading company in Technology and Hardware, saw its market cap rise to $2.46 trillion today.
+        The stock traded actively on the NASDAQ exchange, outperforming many competitors in the sector.
+        Meanwhile, ABB Ltd. (ABB), part of the Electrical Equipment industry, holds a market cap of $73.77 billion and is listed on the New York Stock Exchange.
+        Investors are also watching the metals and mining giant Alcoa (AA), which trades on the NYSE with a market cap of $9.25 billion.`,
+
+        `Shares of Atlantic American (AAME) in the Insurance industry, with a market cap of $80 million, rose sharply after news of new policies.
+        This stock is traded on the American Stock Exchange, part of the broader U.S. equity markets.
+        In Australia, the National Stock Exchange of Australia (AO) continues to list companies like Autoscope Technologies (AATC), which belongs to Scientific & Technical Instruments and has a market cap of $44.17 million.`,
+
+        `The Bolsa de Comercio de Buenos Aires (AF) in Argentina recently saw increased volume from companies like Agilent Technologies (A), a leader in Life Sciences Tools & Services with a $53.65 billion market cap.
+        On the other hand, ATA Creativity Global (AACG), a Shell Company with a $90 million market cap, is attracting attention on emerging markets such as the Toronto Stock Exchange (CT) in Canada.`,
+
+        `American Airlines (AAL), a major player in the Airlines sector with a $12.27 billion market cap, trades primarily on the New York Stock Exchange (NYSE).
+        Across the Atlantic, Vienna's Wiener Boerse Ag (AV) hosts companies like AllianceBernstein (AB) in Capital Markets, boasting a $5.17 billion valuation.
+        Investors also follow the fast-growing pharmaceutical sector, including Aadi Bioscience (AADI), with a $104.85 million market cap.`,
+
+        `Investors on the Shanghai Stock Exchange (CG) are closely monitoring biotechnology giant AbbVie (ABBV), which carries a market cap of $188.52 billion.
+        Meanwhile, specialty retail companies such as The Aaron's Company (AAN), valued at $857 million, are listed on exchanges in the U.S., including the NASDAQ and NYSE.`,
+      ];
+
+      function setSampleText(index) {
+        const textarea =
+          document.querySelector('textarea[name="user_input"]') ||
+          document.getElementById("id_user_input");
+        if (textarea && sampleTexts[index]) {
+          textarea.value = sampleTexts[index];
+          textarea.focus();
+
+          // Add a subtle animation to show the text was loaded
+          textarea.style.transform = "scale(1.02)";
+          textarea.style.transition = "transform 0.2s ease";
+          setTimeout(() => {
+            textarea.style.transform = "scale(1)";
+          }, 200);
+        }
+      }
+    </script>
+  </body>
+</html>
