@@ -15,3 +15,4 @@ tqdm==4.67.1
 tzdata==2025.2
 gunicorn
 whitenoise
+python-decouple
