@@ -25,6 +25,9 @@ console_command = '/code/manage.py shell'
   cpu_kind = 'shared'
   cpus = 1
 
+[deploy]
+  release_command = "python manage.py migrate --noinput"
+
 [[statics]]
   guest_path = '/code/static'
   url_prefix = '/static/'
